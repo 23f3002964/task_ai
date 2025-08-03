@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from datetime import date, datetime
 from .. import crud, schemas
 from ..database import get_db
 
@@ -10,6 +11,27 @@ router = APIRouter(
     tags=["Tasks"],
     responses={404: {"description": "Not found"}},
 )
+
+
+@router.get(
+    "/schedule/",
+    response_model=List[schemas.Task],
+    summary="Get Task Schedule for a Date Range",
+)
+def get_schedule_for_date_range(
+    start_date: date, end_date: date, db: Session = Depends(get_db)
+):
+    """
+    Retrieve all tasks scheduled to start within a given date range.
+    """
+    # Convert date objects to datetime objects for the query
+    start_datetime = datetime.combine(start_date, datetime.min.time())
+    end_datetime = datetime.combine(end_date, datetime.max.time())
+
+    tasks = crud.get_tasks_by_date_range(
+        db, start_date=start_datetime, end_date=end_datetime
+    )
+    return tasks
 
 
 @router.post(

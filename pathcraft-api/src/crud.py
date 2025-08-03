@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 from sqlalchemy.orm import Session, joinedload
 from . import models, schemas
 
@@ -212,3 +213,19 @@ def delete_task(db: Session, task_id: UUID) -> models.Task | None:
         db.delete(db_task)
         db.commit()
     return db_task
+
+
+def get_tasks_by_date_range(
+    db: Session, start_date: datetime, end_date: datetime
+) -> list[models.Task]:
+    """
+    Retrieve all tasks that have a planned start date within a given date range.
+    """
+    return (
+        db.query(models.Task)
+        .filter(
+            models.Task.planned_start >= start_date,
+            models.Task.planned_start <= end_date,
+        )
+        .all()
+    )

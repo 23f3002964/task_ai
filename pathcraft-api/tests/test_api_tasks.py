@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # Note: Fixtures `client` and `test_sub_goal` are defined in `conftest.py`
 
@@ -104,3 +104,47 @@ def test_delete_task(client: TestClient, test_sub_goal: dict):
     # Verify it's gone
     get_response = client.get(f"/tasks/{task_id}")
     assert get_response.status_code == 404
+
+
+def test_get_schedule_for_date_range(client: TestClient, test_sub_goal: dict):
+    """
+    Test the GET /schedule endpoint for fetching tasks within a date range.
+    """
+    subgoal_id = test_sub_goal["id"]
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    yesterday = today - timedelta(days=1)
+    tomorrow = today + timedelta(days=1)
+
+    # Create tasks with different planned_start dates
+    client.post(
+        f"/subgoals/{subgoal_id}/tasks/",
+        json={"description": "Task Yesterday", "planned_start": (now - timedelta(days=1)).isoformat()}
+    )
+    client.post(
+        f"/subgoals/{subgoal_id}/tasks/",
+        json={"description": "Task Today", "planned_start": now.isoformat()}
+    )
+    client.post(
+        f"/subgoals/{subgoal_id}/tasks/",
+        json={"description": "Task Tomorrow", "planned_start": (now + timedelta(days=1)).isoformat()}
+    )
+
+    # Test fetching tasks just for today
+    response_today = client.get(f"/schedule/?start_date={today}&end_date={today}")
+    assert response_today.status_code == 200
+    data_today = response_today.json()
+    assert len(data_today) == 1
+    assert data_today[0]["description"] == "Task Today"
+
+    # Test fetching tasks for a range including all three tasks
+    response_range = client.get(f"/schedule/?start_date={yesterday}&end_date={tomorrow}")
+    assert response_range.status_code == 200
+    data_range = response_range.json()
+    assert len(data_range) == 3
+
+    # Test fetching tasks for a range with no tasks
+    far_future = today + timedelta(days=10)
+    response_empty = client.get(f"/schedule/?start_date={far_future}&end_date={far_future}")
+    assert response_empty.status_code == 200
+    assert len(response_empty.json()) == 0
