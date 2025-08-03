@@ -21,7 +21,7 @@ class Goal(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String, nullable=False, index=True)
-    target_date = Column(DateTime, nullable=False)
+    target_date = Column(DateTime(timezone=True), nullable=False)
     # As per the doc: SMART / OKR / custom
     methodology = Column(String, default="custom", nullable=False)
 
@@ -61,10 +61,10 @@ class Task(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     subgoal_id = Column(UUID(as_uuid=True), ForeignKey("sub_goals.id"), nullable=False)
     description = Column(String, nullable=False) # Adding description for clarity
-    planned_start = Column(DateTime, nullable=True)
-    planned_end = Column(DateTime, nullable=True)
-    actual_start = Column(DateTime, nullable=True)
-    actual_end = Column(DateTime, nullable=True)
+    planned_start = Column(DateTime(timezone=True), nullable=True)
+    planned_end = Column(DateTime(timezone=True), nullable=True)
+    actual_start = Column(DateTime(timezone=True), nullable=True)
+    actual_end = Column(DateTime(timezone=True), nullable=True)
     status = Column(Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
     # reminder_policy_id can be a FK to a future table. Storing as string for now.
     reminder_policy_id = Column(String, nullable=True)
