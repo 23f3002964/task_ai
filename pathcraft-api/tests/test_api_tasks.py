@@ -22,6 +22,7 @@ def test_create_task_for_subgoal(client: TestClient, test_sub_goal: dict):
             "description": "First task",
             "planned_start": start_time,
             "planned_end": end_time,
+            "reminder_policy_id": "15_minutes_before",
         },
     )
     assert response.status_code == 201, response.text
@@ -29,6 +30,7 @@ def test_create_task_for_subgoal(client: TestClient, test_sub_goal: dict):
     assert data["description"] == "First task"
     assert data["subgoal_id"] == subgoal_id
     assert data["status"] == "todo"  # Default status
+    assert data["reminder_policy_id"] == "15_minutes_before"
     assert "id" in data
 
 
@@ -78,12 +80,17 @@ def test_update_task(client: TestClient, test_sub_goal: dict):
 
     response = client.put(
         f"/tasks/{task_id}",
-        json={"description": "Updated description", "status": "in-progress"},
+        json={
+            "description": "Updated description",
+            "status": "in-progress",
+            "reminder_policy_id": "1_hour_before",
+        },
     )
     assert response.status_code == 200
     data = response.json()
     assert data["description"] == "Updated description"
     assert data["status"] == "in-progress"
+    assert data["reminder_policy_id"] == "1_hour_before"
 
 
 def test_delete_task(client: TestClient, test_sub_goal: dict):

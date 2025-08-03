@@ -17,7 +17,7 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
-    pass
+    reminder_policy_id: Optional[str] = None
 
 
 class TaskUpdate(BaseModel):
@@ -25,6 +25,7 @@ class TaskUpdate(BaseModel):
     planned_start: Optional[datetime] = None
     planned_end: Optional[datetime] = None
     status: Optional[TaskStatus] = None
+    reminder_policy_id: Optional[str] = None
 
 
 class Task(TaskBase):
@@ -33,6 +34,7 @@ class Task(TaskBase):
     status: TaskStatus
     actual_start: Optional[datetime] = None
     actual_end: Optional[datetime] = None
+    reminder_policy_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
