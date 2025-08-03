@@ -1,58 +1,13 @@
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, StaticPool
-from sqlalchemy.orm import sessionmaker, Session
-from datetime import datetime, timezone
+from sqlalchemy.orm import Session
+from datetime import datetime, timezone, timedelta
 
-from src.main import app
-from src.database import get_db
-from src.models import Base
+# Note: Fixtures `db_session` and `client` are now defined in `conftest.py`
+# and are automatically available to all tests.
 
 # ====================
-# Test Setup
+# Goal API Tests
 # ====================
-
-# Use an in-memory SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,  # Use a static pool for in-memory DB
-)
-
-# Create a new sessionmaker for the test database
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Pytest fixture to set up and tear down the database for each test
-@pytest.fixture(scope="function")
-def db_session():
-    # Create all tables
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        # Drop all tables
-        Base.metadata.drop_all(bind=engine)
-
-# Pytest fixture to provide a TestClient with the get_db dependency overridden
-@pytest.fixture(scope="function")
-def client(db_session: Session):
-    def override_get_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-    yield TestClient(app)
-    # Clean up the dependency override
-    del app.dependency_overrides[get_db]
-
-# ====================
-# API Tests
-# ====================
-
-from datetime import timedelta
 
 def test_create_goal(client: TestClient):
     """

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from . import models
 from .database import engine
-from .routers import goals
+from .routers import goals, subgoals
 
 # This line creates the database tables based on the models defined in models.py
 # It will create the 'pathcraft.db' file in the root directory if it doesn't exist.
@@ -14,8 +14,9 @@ app = FastAPI(
     version="0.1.0 (MVP Phase 1)",
 )
 
-# Include the router for goal-related endpoints
+# Include the routers
 app.include_router(goals.router)
+app.include_router(subgoals.router)
 
 
 @app.get("/", tags=["Health Check"])
