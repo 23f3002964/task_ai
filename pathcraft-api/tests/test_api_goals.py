@@ -1,58 +1,13 @@
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, StaticPool
-from sqlalchemy.orm import sessionmaker, Session
-from datetime import datetime, timezone
+from sqlalchemy.orm import Session
+from datetime import datetime, timezone, timedelta
 
-from src.main import app
-from src.database import get_db
-from src.models import Base
+# Note: Fixtures `db_session` and `client` are now defined in `conftest.py`
+# and are automatically available to all tests.
 
 # ====================
-# Test Setup
+# Goal API Tests
 # ====================
-
-# Use an in-memory SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,  # Use a static pool for in-memory DB
-)
-
-# Create a new sessionmaker for the test database
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Pytest fixture to set up and tear down the database for each test
-@pytest.fixture(scope="function")
-def db_session():
-    # Create all tables
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        # Drop all tables
-        Base.metadata.drop_all(bind=engine)
-
-# Pytest fixture to provide a TestClient with the get_db dependency overridden
-@pytest.fixture(scope="function")
-def client(db_session: Session):
-    def override_get_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-    yield TestClient(app)
-    # Clean up the dependency override
-    del app.dependency_overrides[get_db]
-
-# ====================
-# API Tests
-# ====================
-
-from datetime import timedelta
 
 def test_create_goal(client: TestClient):
     """
@@ -158,3 +113,31 @@ def test_read_nonexistent_goal(client: TestClient):
     non_existent_id = uuid.uuid4()
     response = client.get(f"/goals/{non_existent_id}")
     assert response.status_code == 404
+
+def test_decompose_goal_endpoint(client: TestClient):
+    """
+    Test the POST /goals/{goal_id}/decompose endpoint.
+    """
+    # 1. Create a goal with a decomposable title
+    target_date = datetime.now(timezone.utc).isoformat()
+    create_response = client.post(
+        "/goals/",
+        json={"title": "I want to learn Spanish", "target_date": target_date},
+    )
+    assert create_response.status_code == 201
+    goal_id = create_response.json()["id"]
+
+    # 2. Call the decompose endpoint
+    decompose_response = client.post(f"/goals/{goal_id}/decompose")
+    assert decompose_response.status_code == 201
+
+    # 3. Verify the created sub-goals from the response
+    sub_goals = decompose_response.json()
+    assert len(sub_goals) == 5  # Based on the "learn" template
+    assert sub_goals[0]["description"] == "Research and gather learning resources (books, courses, articles)."
+    assert sub_goals[0]["parent_goal_id"] == goal_id
+
+    # 4. Also verify that the sub-goals are in the database via the GET endpoint
+    get_response = client.get(f"/goals/{goal_id}/subgoals/")
+    assert get_response.status_code == 200
+    assert len(get_response.json()) == 5
