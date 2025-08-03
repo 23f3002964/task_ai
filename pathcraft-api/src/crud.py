@@ -104,3 +104,62 @@ def delete_sub_goal(db: Session, sub_goal_id: UUID) -> models.SubGoal | None:
         db.delete(db_sub_goal)
         db.commit()
     return db_sub_goal
+
+# ====================
+# Task CRUD Functions
+# ====================
+
+def get_task(db: Session, task_id: UUID) -> models.Task | None:
+    """
+    Retrieve a single task by its ID.
+    """
+    return db.query(models.Task).filter(models.Task.id == task_id).first()
+
+def get_tasks_by_sub_goal(
+    db: Session, sub_goal_id: UUID, skip: int = 0, limit: int = 100
+) -> list[models.Task]:
+    """
+    Retrieve a list of tasks for a specific sub-goal with pagination.
+    """
+    return (
+        db.query(models.Task)
+        .filter(models.Task.subgoal_id == sub_goal_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+def create_task(db: Session, task: schemas.TaskCreate, sub_goal_id: UUID) -> models.Task:
+    """
+    Create a new task for a given sub-goal.
+    """
+    db_task = models.Task(**task.model_dump(), subgoal_id=sub_goal_id)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+def update_task(
+    db: Session, db_task: models.Task, task_in: schemas.TaskUpdate
+) -> models.Task:
+    """
+    Update an existing task.
+    """
+    update_data = task_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_task, key, value)
+
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+def delete_task(db: Session, task_id: UUID) -> models.Task | None:
+    """
+    Delete a task from the database by its ID.
+    """
+    db_task = db.query(models.Task).filter(models.Task.id == task_id).first()
+    if db_task:
+        db.delete(db_task)
+        db.commit()
+    return db_task

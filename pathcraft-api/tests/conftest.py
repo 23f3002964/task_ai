@@ -65,3 +65,16 @@ def test_goal(client: TestClient) -> dict:
     )
     assert response.status_code == 201
     return response.json()
+
+@pytest.fixture(scope="function")
+def test_sub_goal(client: TestClient, test_goal: dict) -> dict:
+    """
+    Pytest fixture to create a single sub-goal under the test_goal.
+    """
+    goal_id = test_goal["id"]
+    response = client.post(
+        f"/goals/{goal_id}/subgoals/",
+        json={"description": "Test Sub-Goal"},
+    )
+    assert response.status_code == 201
+    return response.json()
