@@ -113,3 +113,31 @@ def test_read_nonexistent_goal(client: TestClient):
     non_existent_id = uuid.uuid4()
     response = client.get(f"/goals/{non_existent_id}")
     assert response.status_code == 404
+
+def test_decompose_goal_endpoint(client: TestClient):
+    """
+    Test the POST /goals/{goal_id}/decompose endpoint.
+    """
+    # 1. Create a goal with a decomposable title
+    target_date = datetime.now(timezone.utc).isoformat()
+    create_response = client.post(
+        "/goals/",
+        json={"title": "I want to learn Spanish", "target_date": target_date},
+    )
+    assert create_response.status_code == 201
+    goal_id = create_response.json()["id"]
+
+    # 2. Call the decompose endpoint
+    decompose_response = client.post(f"/goals/{goal_id}/decompose")
+    assert decompose_response.status_code == 201
+
+    # 3. Verify the created sub-goals from the response
+    sub_goals = decompose_response.json()
+    assert len(sub_goals) == 5  # Based on the "learn" template
+    assert sub_goals[0]["description"] == "Research and gather learning resources (books, courses, articles)."
+    assert sub_goals[0]["parent_goal_id"] == goal_id
+
+    # 4. Also verify that the sub-goals are in the database via the GET endpoint
+    get_response = client.get(f"/goals/{goal_id}/subgoals/")
+    assert get_response.status_code == 200
+    assert len(get_response.json()) == 5
