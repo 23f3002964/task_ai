@@ -11,7 +11,12 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/goals/{goal_id}/subgoals/", response_model=schemas.SubGoal, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/goals/{goal_id}/subgoals/",
+    response_model=schemas.SubGoal,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_sub_goal_for_goal(
     goal_id: UUID, sub_goal: schemas.SubGoalCreate, db: Session = Depends(get_db)
 ):
@@ -23,6 +28,7 @@ def create_sub_goal_for_goal(
     if db_goal is None:
         raise HTTPException(status_code=404, detail="Parent goal not found")
     return crud.create_sub_goal(db=db, sub_goal=sub_goal, goal_id=goal_id)
+
 
 @router.get("/goals/{goal_id}/subgoals/", response_model=List[schemas.SubGoal])
 def read_sub_goals_for_goal(
@@ -38,6 +44,7 @@ def read_sub_goals_for_goal(
     sub_goals = crud.get_sub_goals_by_goal(db, goal_id=goal_id, skip=skip, limit=limit)
     return sub_goals
 
+
 @router.get("/subgoals/{sub_goal_id}", response_model=schemas.SubGoal)
 def read_single_sub_goal(sub_goal_id: UUID, db: Session = Depends(get_db)):
     """
@@ -47,6 +54,7 @@ def read_single_sub_goal(sub_goal_id: UUID, db: Session = Depends(get_db)):
     if db_sub_goal is None:
         raise HTTPException(status_code=404, detail="Sub-goal not found")
     return db_sub_goal
+
 
 @router.put("/subgoals/{sub_goal_id}", response_model=schemas.SubGoal)
 def update_existing_sub_goal(
@@ -60,6 +68,7 @@ def update_existing_sub_goal(
         raise HTTPException(status_code=404, detail="Sub-goal not found")
 
     return crud.update_sub_goal(db=db, db_sub_goal=db_sub_goal, sub_goal_in=sub_goal_in)
+
 
 @router.delete("/subgoals/{sub_goal_id}", response_model=schemas.SubGoal)
 def delete_existing_sub_goal(sub_goal_id: UUID, db: Session = Depends(get_db)):

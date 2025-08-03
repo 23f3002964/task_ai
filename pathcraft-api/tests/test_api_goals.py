@@ -9,6 +9,7 @@ from datetime import datetime, timezone, timedelta
 # Goal API Tests
 # ====================
 
+
 def test_create_goal(client: TestClient):
     """
     Test creating a new goal via the POST /goals endpoint.
@@ -32,6 +33,7 @@ def test_create_goal(client: TestClient):
     assert "id" in data
     assert data["methodology"] == "custom"
 
+
 def test_read_goals(client: TestClient, db_session: Session):
     """
     Test retrieving a list of goals via the GET /goals endpoint.
@@ -47,6 +49,7 @@ def test_read_goals(client: TestClient, db_session: Session):
     assert len(data) == 2
     assert data[0]["title"] == "Goal 1"
     assert data[1]["title"] == "Goal 2"
+
 
 def test_read_single_goal(client: TestClient):
     """
@@ -64,6 +67,7 @@ def test_read_single_goal(client: TestClient):
     data = read_response.json()
     assert data["title"] == "Specific Goal"
     assert data["id"] == goal_id
+
 
 def test_update_goal(client: TestClient):
     """
@@ -85,6 +89,7 @@ def test_update_goal(client: TestClient):
     assert data["title"] == "Updated Title"
     assert data["id"] == goal_id
 
+
 def test_delete_goal(client: TestClient):
     """
     Test deleting a goal.
@@ -105,14 +110,17 @@ def test_delete_goal(client: TestClient):
     get_response = client.get(f"/goals/{goal_id}")
     assert get_response.status_code == 404
 
+
 def test_read_nonexistent_goal(client: TestClient):
     """
     Test that reading a non-existent goal returns a 404 error.
     """
     import uuid
+
     non_existent_id = uuid.uuid4()
     response = client.get(f"/goals/{non_existent_id}")
     assert response.status_code == 404
+
 
 def test_decompose_goal_endpoint(client: TestClient):
     """
@@ -134,7 +142,10 @@ def test_decompose_goal_endpoint(client: TestClient):
     # 3. Verify the created sub-goals from the response
     sub_goals = decompose_response.json()
     assert len(sub_goals) == 5  # Based on the "learn" template
-    assert sub_goals[0]["description"] == "Research and gather learning resources (books, courses, articles)."
+    assert (
+        sub_goals[0]["description"]
+        == "Research and gather learning resources (books, courses, articles)."
+    )
     assert sub_goals[0]["parent_goal_id"] == goal_id
 
     # 4. Also verify that the sub-goals are in the database via the GET endpoint

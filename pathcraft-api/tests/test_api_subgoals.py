@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 # Sub-Goal API Tests
 # =======================
 
+
 def test_create_sub_goal_for_goal(client: TestClient, test_goal: dict):
     """
     Test creating a new sub-goal for an existing goal.
@@ -22,17 +23,20 @@ def test_create_sub_goal_for_goal(client: TestClient, test_goal: dict):
     assert data["parent_goal_id"] == goal_id
     assert "id" in data
 
+
 def test_create_sub_goal_for_nonexistent_goal(client: TestClient):
     """
     Test that creating a sub-goal for a non-existent goal fails.
     """
     import uuid
+
     non_existent_goal_id = uuid.uuid4()
     response = client.post(
         f"/goals/{non_existent_goal_id}/subgoals/",
         json={"description": "This should fail"},
     )
     assert response.status_code == 404
+
 
 def test_read_sub_goals_for_goal(client: TestClient, test_goal: dict):
     """
@@ -50,6 +54,7 @@ def test_read_sub_goals_for_goal(client: TestClient, test_goal: dict):
     assert data[0]["description"] == "Sub-goal 1"
     assert data[1]["description"] == "Sub-goal 2"
 
+
 def test_read_single_sub_goal(client: TestClient, test_goal: dict):
     """
     Test retrieving a single sub-goal by its own ID.
@@ -65,6 +70,7 @@ def test_read_single_sub_goal(client: TestClient, test_goal: dict):
     data = response.json()
     assert data["description"] == "A specific sub-goal"
     assert data["id"] == sub_goal_id
+
 
 def test_update_sub_goal(client: TestClient, test_goal: dict):
     """
@@ -82,6 +88,7 @@ def test_update_sub_goal(client: TestClient, test_goal: dict):
     assert response.status_code == 200
     data = response.json()
     assert data["description"] == "Updated description"
+
 
 def test_delete_sub_goal(client: TestClient, test_goal: dict):
     """

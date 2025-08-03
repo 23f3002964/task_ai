@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 # Task API Tests
 # ====================
 
+
 def test_create_task_for_subgoal(client: TestClient, test_sub_goal: dict):
     """
     Test creating a new task for an existing sub-goal.
@@ -30,6 +31,7 @@ def test_create_task_for_subgoal(client: TestClient, test_sub_goal: dict):
     assert data["status"] == "todo"  # Default status
     assert "id" in data
 
+
 def test_read_tasks_for_subgoal(client: TestClient, test_sub_goal: dict):
     """
     Test retrieving all tasks for a specific sub-goal.
@@ -46,6 +48,7 @@ def test_read_tasks_for_subgoal(client: TestClient, test_sub_goal: dict):
     assert data[0]["description"] == "Task 1"
     assert data[1]["description"] == "Task 2"
 
+
 def test_read_single_task(client: TestClient, test_sub_goal: dict):
     """
     Test retrieving a single task by its own ID.
@@ -61,6 +64,7 @@ def test_read_single_task(client: TestClient, test_sub_goal: dict):
     data = response.json()
     assert data["description"] == "A specific task"
     assert data["id"] == task_id
+
 
 def test_update_task(client: TestClient, test_sub_goal: dict):
     """
@@ -80,6 +84,7 @@ def test_update_task(client: TestClient, test_sub_goal: dict):
     data = response.json()
     assert data["description"] == "Updated description"
     assert data["status"] == "in-progress"
+
 
 def test_delete_task(client: TestClient, test_sub_goal: dict):
     """

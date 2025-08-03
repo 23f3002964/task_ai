@@ -12,12 +12,14 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 @router.post("/", response_model=schemas.Goal, status_code=status.HTTP_201_CREATED)
 def create_new_goal(goal: schemas.GoalCreate, db: Session = Depends(get_db)):
     """
     Create a new goal.
     """
     return crud.create_goal(db=db, goal=goal)
+
 
 @router.get("/", response_model=List[schemas.Goal])
 def read_all_goals(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -26,6 +28,7 @@ def read_all_goals(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
     """
     goals = crud.get_goals(db, skip=skip, limit=limit)
     return goals
+
 
 @router.get("/{goal_id}", response_model=schemas.Goal)
 def read_single_goal(goal_id: UUID, db: Session = Depends(get_db)):
@@ -37,17 +40,17 @@ def read_single_goal(goal_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Goal not found")
     return db_goal
 
+
 @router.post(
     "/{goal_id}/decompose",
     response_model=List[schemas.SubGoal],
     status_code=status.HTTP_201_CREATED,
     summary="Decompose Goal into Sub-Goals",
 )
-def decompose_goal_and_create_sub_goals(
-    goal_id: UUID, db: Session = Depends(get_db)
-):
+def decompose_goal_and_create_sub_goals(goal_id: UUID, db: Session = Depends(get_db)):
     """
-    Automatically decompose a goal into a set of sub-goals based on predefined templates.
+    Automatically decompose a goal into a set of sub-goals based on
+    predefined templates.
 
     This endpoint will:
     1. Find the parent goal.
@@ -63,7 +66,10 @@ def decompose_goal_and_create_sub_goals(
     if not sub_goals_to_create:
         raise HTTPException(
             status_code=400,
-            detail=f"Could not decompose goal: No matching template found for title '{db_goal.title}'.",
+            detail=(
+                "Could not decompose goal: No matching template found for title "
+                f"'{db_goal.title}'."
+            ),
         )
 
     created_sub_goals = [
@@ -72,6 +78,7 @@ def decompose_goal_and_create_sub_goals(
     ]
 
     return created_sub_goals
+
 
 @router.put("/{goal_id}", response_model=schemas.Goal)
 def update_existing_goal(
@@ -85,6 +92,7 @@ def update_existing_goal(
         raise HTTPException(status_code=404, detail="Goal not found")
     updated_goal = crud.update_goal(db=db, db_goal=db_goal, goal_in=goal_in)
     return updated_goal
+
 
 @router.delete("/{goal_id}", response_model=schemas.Goal)
 def delete_existing_goal(goal_id: UUID, db: Session = Depends(get_db)):

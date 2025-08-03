@@ -24,6 +24,7 @@ engine = create_engine(
 # Create a new sessionmaker for the test database
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @pytest.fixture(scope="function")
 def db_session():
     """
@@ -38,12 +39,14 @@ def db_session():
         db.close()
         Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture(scope="function")
 def client(db_session: Session):
     """
     Pytest fixture to provide a TestClient with the get_db dependency overridden.
     This allows tests to interact with the in-memory test database.
     """
+
     def override_get_db():
         yield db_session
 
@@ -51,6 +54,7 @@ def client(db_session: Session):
     yield TestClient(app)
     # Clean up the dependency override after the test
     del app.dependency_overrides[get_db]
+
 
 # Helper fixture to create a goal for tests that need one
 @pytest.fixture(scope="function")
@@ -65,6 +69,7 @@ def test_goal(client: TestClient) -> dict:
     )
     assert response.status_code == 201
     return response.json()
+
 
 @pytest.fixture(scope="function")
 def test_sub_goal(client: TestClient, test_goal: dict) -> dict:
