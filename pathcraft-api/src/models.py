@@ -25,11 +25,15 @@ class Goal(Base):
     target_date = Column(DateTime(timezone=True), nullable=False)
     # As per the doc: SMART / OKR / custom
     methodology = Column(String, default="custom", nullable=False)
+    notes = Column(String, nullable=True)
 
     # Relationship to SubGoal
     sub_goals = relationship(
         "SubGoal", back_populates="parent_goal", cascade="all, delete-orphan"
     )
+
+    # New field for progress tracking
+    progress_percentage = Column(Integer, default=0, nullable=False)
 
     def __repr__(self):
         return f"<Goal(title='{self.title}')>"
@@ -46,6 +50,7 @@ class SubGoal(Base):
     estimated_effort_minutes = Column(Integer, nullable=True)
     # Storing dependencies as a JSON array of SubGoal IDs for the MVP
     dependencies = Column(JSON, nullable=True)
+    notes = Column(String, nullable=True)
 
     # Relationship to Goal
     parent_goal = relationship("Goal", back_populates="sub_goals")
@@ -53,6 +58,9 @@ class SubGoal(Base):
     tasks = relationship(
         "Task", back_populates="sub_goal", cascade="all, delete-orphan"
     )
+
+    # New field for progress tracking
+    progress_percentage = Column(Integer, default=0, nullable=False)
 
     def __repr__(self):
         return f"<SubGoal(description='{self.description}')>"
@@ -77,6 +85,7 @@ class Task(Base):
     planned_end = Column(DateTime(timezone=True), nullable=True)
     actual_start = Column(DateTime(timezone=True), nullable=True)
     actual_end = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
     status = Column(Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
     # reminder_policy_id can be a FK to a future table. Storing as string for now.
     reminder_policy_id = Column(String, nullable=True)

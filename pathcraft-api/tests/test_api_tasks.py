@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from datetime import datetime, timezone, timedelta
+from dateutil.parser import isoparse
 
 # Note: Fixtures `client` and `test_sub_goal` are defined in `conftest.py`
 
@@ -91,6 +92,59 @@ def test_update_task(client: TestClient, test_sub_goal: dict):
     assert data["description"] == "Updated description"
     assert data["status"] == "in-progress"
     assert data["reminder_policy_id"] == "1_hour_before"
+
+
+def test_update_task_status_to_done_sets_completion_date(client: TestClient, test_sub_goal: dict):
+    """
+    Test that updating a task's status to 'done' sets the 'completed_at' timestamp.
+    """
+    subgoal_id = test_sub_goal["id"]
+    create_response = client.post(
+        f"/subgoals/{subgoal_id}/tasks/", json={"description": "A task to complete"}
+    )
+    task_id = create_response.json()["id"]
+    assert create_response.json()["completed_at"] is None
+
+    # Update status to "done"
+    update_response = client.put(f"/tasks/{task_id}", json={"status": "done"})
+    assert update_response.status_code == 200
+    updated_task = update_response.json()
+    assert updated_task["status"] == "done"
+    assert updated_task["completed_at"] is not None
+
+    # Check that the timestamp is recent
+    completed_time = isoparse(updated_task["completed_at"]).replace(tzinfo=timezone.utc)
+    assert (datetime.now(timezone.utc) - completed_time) < timedelta(seconds=5)
+
+    # Test that setting it back to 'todo' clears the timestamp
+    update_response_2 = client.put(f"/tasks/{task_id}", json={"status": "todo"})
+    assert update_response_2.status_code == 200
+    updated_task_2 = update_response_2.json()
+    assert updated_task_2["status"] == "todo"
+    assert updated_task_2["completed_at"] is None
+
+
+def test_update_task_status_to_in_progress_sets_start_date(client: TestClient, test_sub_goal: dict):
+    """
+    Test that updating a task's status to 'in-progress' sets the 'actual_start' timestamp.
+    """
+    subgoal_id = test_sub_goal["id"]
+    create_response = client.post(
+        f"/subgoals/{subgoal_id}/tasks/", json={"description": "A task to start"}
+    )
+    task_id = create_response.json()["id"]
+    assert create_response.json()["actual_start"] is None
+
+    # Update status to "in-progress"
+    update_response = client.put(f"/tasks/{task_id}", json={"status": "in-progress"})
+    assert update_response.status_code == 200
+    updated_task = update_response.json()
+    assert updated_task["status"] == "in-progress"
+    assert updated_task["actual_start"] is not None
+
+    # Check that the timestamp is recent
+    start_time = isoparse(updated_task["actual_start"]).replace(tzinfo=timezone.utc)
+    assert (datetime.now(timezone.utc) - start_time) < timedelta(seconds=5)
 
 
 def test_delete_task(client: TestClient, test_sub_goal: dict):

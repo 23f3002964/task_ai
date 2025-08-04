@@ -1,5 +1,5 @@
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session, joinedload
 from . import models, schemas
 
@@ -182,6 +182,11 @@ def create_task(
     Create a new task for a given sub-goal.
     """
     db_task = models.Task(**task.model_dump(), subgoal_id=sub_goal_id)
+
+    # If a task is created as IN_PROGRESS, mark the start time
+    if db_task.status == models.TaskStatus.IN_PROGRESS:
+        db_task.actual_start = datetime.now(timezone.utc)
+
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -193,8 +198,23 @@ def update_task(
 ) -> models.Task:
     """
     Update an existing task.
+    If the task status is being set to DONE, record the completion timestamp.
     """
     update_data = task_in.model_dump(exclude_unset=True)
+
+    # If status is updated to DONE, set completed_at
+    if update_data.get("status") == models.TaskStatus.DONE and db_task.status != models.TaskStatus.DONE:
+        db_task.completed_at = datetime.now(timezone.utc)
+        db_task.actual_end = datetime.now(timezone.utc)  # Also setting actual_end for consistency
+
+    # If status is being changed from DONE to something else, clear completed_at
+    elif update_data.get("status") != models.TaskStatus.DONE and db_task.status == models.TaskStatus.DONE:
+        db_task.completed_at = None
+
+    # If status is updated to IN_PROGRESS, set actual_start
+    if update_data.get("status") == models.TaskStatus.IN_PROGRESS and db_task.status == models.TaskStatus.TODO:
+        db_task.actual_start = datetime.now(timezone.utc)
+
     for key, value in update_data.items():
         setattr(db_task, key, value)
 
