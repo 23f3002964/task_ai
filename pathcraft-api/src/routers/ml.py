@@ -14,6 +14,31 @@ slot_selector = SlotSelector()
 X_train, y_train = get_dummy_data()
 slot_selector.train(X_train, y_train)
 
+from ..ml.reminder_system import ReminderBanditManager
+
+reminder_manager = ReminderBanditManager()
+
+@router.post("/reminders/suggest", response_model=schemas.ReminderSuggestion)
+def suggest_reminder(suggestion_request: schemas.ReminderSuggestionRequest):
+    """
+    Suggests a reminder strategy for a given user.
+    """
+    arms = ['push_15_min', 'email_1_hour', 'sms_on_day']  # These would likely be configurable
+    bandit = reminder_manager.get_bandit(user_id=suggestion_request.user_id, arms=arms)
+    suggestion = bandit.select_arm()
+    return schemas.ReminderSuggestion(user_id=suggestion_request.user_id, suggestion=suggestion)
+
+@router.post("/reminders/reward")
+def reward_reminder(reward_request: schemas.ReminderReward):
+    """
+    Updates the reminder bandit with a reward.
+    """
+    arms = ['push_15_min', 'email_1_hour', 'sms_on_day']
+    bandit = reminder_manager.get_bandit(user_id=reward_request.user_id, arms=arms)
+    bandit.update(arm=reward_request.arm, reward=reward_request.reward)
+    reminder_manager.save_bandit(bandit)
+    return {"status": "ok"}
+
 @router.post("/schedule/optimize", response_model=schemas.Schedule)
 def optimize_schedule(schedule_request: schemas.ScheduleRequest, db: Session = Depends(get_db)):
     """

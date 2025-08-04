@@ -130,3 +130,15 @@ class OptimizedSlot(BaseModel):
 
 class Schedule(BaseModel):
     optimized_slots: List[OptimizedSlot]
+
+class ReminderSuggestionRequest(BaseModel):
+    user_id: str
+
+class ReminderSuggestion(BaseModel):
+    user_id: str
+    suggestion: str
+
+class ReminderReward(BaseModel):
+    user_id: str
+    arm: str
+    reward: float
