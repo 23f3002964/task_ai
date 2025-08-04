@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+
+# Database
+*.db
+*.sqlite3
+
+# Flutter
+pathcraft_app/
+/pathcraft_app/build/
+/pathcraft_app/.dart_tool/
+/pathcraft_app/.idea/
+/pathcraft_app/windows/build/
+/pathcraft_app/linux/build/
+/pathcraft_app/macos/build/
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr

@@ -13,6 +13,7 @@ engine = create_engine(
 # Each instance of SessionLocal will be a database session.
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # This dependency will be used in API endpoints to get a database session.
 # It ensures that the database session is always closed after the request is finished.
 def get_db():

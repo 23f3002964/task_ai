@@ -45,6 +45,7 @@ DECOMPOSITION_TEMPLATES: Dict[str, List[str]] = {
     ],
 }
 
+
 def generate_sub_goals_from_template(goal_title: str) -> List[Dict[str, Any]]:
     """
     Generates a list of sub-goals based on keywords in the goal's title.

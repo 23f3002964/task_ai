@@ -9,7 +9,8 @@ client = TestClient(app)
 
 def test_read_root_health_check():
     """
-    Tests that the root endpoint returns a 200 OK status and the expected welcome message.
+    Tests that the root endpoint returns a 200 OK status and the expected
+    welcome message.
     """
     response = client.get("/")
     assert response.status_code == 200

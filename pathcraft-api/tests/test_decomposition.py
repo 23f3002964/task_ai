@@ -13,6 +13,7 @@ from src.decomposition import (
 # Unit Tests for Decomposition Logic
 # ============================
 
+
 @pytest.mark.parametrize(
     "keyword, expected_template_key",
     [
@@ -33,6 +34,7 @@ def test_generate_sub_goals_from_template_keywords(keyword, expected_template_ke
     assert len(sub_goals) == len(expected_descriptions)
     assert sub_goals[0]["description"] == expected_descriptions[0]
 
+
 def test_generate_sub_goals_for_no_matching_keyword():
     """
     Test that an empty list is returned when no keyword is found.
@@ -40,6 +42,7 @@ def test_generate_sub_goals_for_no_matching_keyword():
     title = "A goal with no decomposition template"
     sub_goals = generate_sub_goals_from_template(title)
     assert sub_goals == []
+
 
 def test_decompose_goal_service_layer():
     """
