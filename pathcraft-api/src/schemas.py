@@ -84,6 +84,7 @@ class GoalBase(BaseModel):
     methodology: str = "custom"
     notes: Optional[str] = None
     progress_percentage: int = 0
+    owner_id: UUID
 
 
 class GoalCreate(GoalBase):
@@ -112,6 +113,24 @@ class Goal(GoalBase):
 # SubGoal.model_rebuild()
 
 # ====================
+# User Schemas
+# ====================
+
+class UserBase(BaseModel):
+    username: str
+    email: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: UUID
+    ab_test_group: Optional[str] = None
+    goals: List[Goal] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+# ====================
 # ML Schemas
 # ====================
 
@@ -131,6 +150,23 @@ class OptimizedSlot(BaseModel):
 class Schedule(BaseModel):
     optimized_slots: List[OptimizedSlot]
 
+# ====================
+# Experiment Schemas
+# ====================
+
+class ExperimentBase(BaseModel):
+    name: str
+    groups: dict
+    is_active: bool = True
+
+class ExperimentCreate(ExperimentBase):
+    pass
+
+class Experiment(ExperimentBase):
+    id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+
 class ReminderSuggestionRequest(BaseModel):
     user_id: str
 
@@ -142,3 +178,39 @@ class ReminderReward(BaseModel):
     user_id: str
     arm: str
     reward: float
+
+# ====================
+# Logging and Metrics Schemas
+# ====================
+
+class MetricBase(BaseModel):
+    name: str
+    value: int
+
+class MetricCreate(MetricBase):
+    user_id: UUID
+    experiment_id: Optional[UUID] = None
+    group: Optional[str] = None
+
+class Metric(MetricBase):
+    id: UUID
+    timestamp: datetime
+    user_id: UUID
+    experiment_id: Optional[UUID] = None
+    group: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class LogBase(BaseModel):
+    event: str
+    details: Optional[dict] = None
+
+class LogCreate(LogBase):
+    user_id: UUID
+
+class Log(LogBase):
+    id: UUID
+    timestamp: datetime
+    user_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)

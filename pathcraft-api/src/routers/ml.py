@@ -18,15 +18,36 @@ from ..ml.reminder_system import ReminderBanditManager
 
 reminder_manager = ReminderBanditManager()
 
+from .. import ab_testing
+
 @router.post("/reminders/suggest", response_model=schemas.ReminderSuggestion)
-def suggest_reminder(suggestion_request: schemas.ReminderSuggestionRequest):
+def suggest_reminder(suggestion_request: schemas.ReminderSuggestionRequest, db: Session = Depends(get_db)):
     """
     Suggests a reminder strategy for a given user.
     """
-    arms = ['push_15_min', 'email_1_hour', 'sms_on_day']  # These would likely be configurable
-    bandit = reminder_manager.get_bandit(user_id=suggestion_request.user_id, arms=arms)
-    suggestion = bandit.select_arm()
-    return schemas.ReminderSuggestion(user_id=suggestion_request.user_id, suggestion=suggestion)
+    user = crud.get_user(db, user_id=suggestion_request.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    experiment = crud.get_experiment_by_name(db, name="reminder_test")
+    if not experiment:
+        # If no experiment is running, use the default bandit
+        arms = ['push_15_min', 'email_1_hour', 'sms_on_day']
+        bandit = reminder_manager.get_bandit(user_id=suggestion_request.user_id, arms=arms)
+        suggestion = bandit.select_arm()
+        return schemas.ReminderSuggestion(user_id=suggestion_request.user_id, suggestion=suggestion)
+
+    group = ab_testing.get_user_group(user, experiment)
+    crud.update_user(db, user) # To save the user's group if it was just assigned
+
+    if group == "treatment":
+        # In a real application, this would be a different reminder strategy
+        return schemas.ReminderSuggestion(user_id=suggestion_request.user_id, suggestion="sms_5_min")
+    else: # control group
+        arms = ['push_15_min', 'email_1_hour', 'sms_on_day']
+        bandit = reminder_manager.get_bandit(user_id=suggestion_request.user_id, arms=arms)
+        suggestion = bandit.select_arm()
+        return schemas.ReminderSuggestion(user_id=suggestion_request.user_id, suggestion=suggestion)
 
 @router.post("/reminders/reward")
 def reward_reminder(reward_request: schemas.ReminderReward):

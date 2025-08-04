@@ -7,6 +7,24 @@
         ],
         "epsilon": 0.1,
         "counts": {
+            "push_15_min": 2,
+            "email_1_hour": 0,
+            "sms_on_day": 0
+        },
+        "values": {
+            "push_15_min": 1.0,
+            "email_1_hour": 0.0,
+            "sms_on_day": 0.0
+        }
+    },
+    "f898cfde-eb00-4933-aa4c-8fe888145b41": {
+        "arms": [
+            "push_15_min",
+            "email_1_hour",
+            "sms_on_day"
+        ],
+        "epsilon": 0.1,
+        "counts": {
             "push_15_min": 1,
             "email_1_hour": 0,
             "sms_on_day": 0

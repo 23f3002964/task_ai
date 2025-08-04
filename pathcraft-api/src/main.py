@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from . import models
 from .database import engine
-from .routers import goals, subgoals, tasks, ml
+from .routers import goals, subgoals, tasks, ml, users, experiments, logging
 
 # This line creates the database tables based on the models defined in models.py
 # It will create the 'pathcraft.db' file in the root directory if it doesn't exist.
@@ -18,6 +18,9 @@ app = FastAPI(
 app.include_router(goals.router)
 app.include_router(subgoals.router)
 app.include_router(tasks.router)
+app.include_router(users.router)
+app.include_router(experiments.router)
+app.include_router(logging.router)
 app.include_router(ml.router, prefix="/ml", tags=["Machine Learning"])
 
 

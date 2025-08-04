@@ -249,3 +249,73 @@ def get_tasks_by_date_range(
         )
         .all()
     )
+
+# ====================
+# User CRUD Functions
+# ====================
+
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def get_user(db: Session, user_id: UUID) -> models.User | None:
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+def get_user_by_username(db: Session, username: str) -> models.User | None:
+    return db.query(models.User).filter(models.User.username == username).first()
+
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+    hashed_password = get_password_hash(user.password)
+    db_user = models.User(username=user.username, email=user.email, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def update_user(db: Session, db_user: models.User) -> models.User:
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+# ========================
+# Experiment CRUD Functions
+# ========================
+
+def get_experiment(db: Session, experiment_id: UUID) -> models.Experiment | None:
+    return db.query(models.Experiment).filter(models.Experiment.id == experiment_id).first()
+
+def get_experiment_by_name(db: Session, name: str) -> models.Experiment | None:
+    return db.query(models.Experiment).filter(models.Experiment.name == name).first()
+
+def create_experiment(db: Session, experiment: schemas.ExperimentCreate) -> models.Experiment:
+    db_experiment = models.Experiment(**experiment.model_dump())
+    db.add(db_experiment)
+    db.commit()
+    db.refresh(db_experiment)
+    return db_experiment
+
+# ====================
+# Metric CRUD Functions
+# ====================
+
+def create_metric(db: Session, metric: schemas.MetricCreate) -> models.Metric:
+    db_metric = models.Metric(**metric.model_dump())
+    db.add(db_metric)
+    db.commit()
+    db.refresh(db_metric)
+    return db_metric
+
+# ====================
+# Log CRUD Functions
+# ====================
+
+def create_log(db: Session, log: schemas.LogCreate) -> models.Log:
+    db_log = models.Log(**log.model_dump())
+    db.add(db_log)
+    db.commit()
+    db.refresh(db_log)
+    return db_log

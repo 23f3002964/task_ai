@@ -56,18 +56,44 @@ def client(db_session: Session):
     del app.dependency_overrides[get_db]
 
 
+# Helper fixture to create a user for tests that need one
+@pytest.fixture(scope="function")
+def test_user(client: TestClient) -> dict:
+    """
+    Pytest fixture to create a single user and return its data.
+    """
+    response = client.post(
+        "/users/",
+        json={"username": "testuser", "email": "test@example.com", "password": "testpassword"},
+    )
+    assert response.status_code == 200
+    return response.json()
+
 # Helper fixture to create a goal for tests that need one
 @pytest.fixture(scope="function")
-def test_goal(client: TestClient) -> dict:
+def test_goal(client: TestClient, test_user: dict) -> dict:
     """
     Pytest fixture to create a single goal and return its data.
     """
     target_date_str = datetime.now(timezone.utc).isoformat()
     response = client.post(
         "/goals/",
-        json={"title": "Test Parent Goal", "target_date": target_date_str},
+        json={"title": "Test Parent Goal", "target_date": target_date_str, "owner_id": test_user["id"]},
     )
     assert response.status_code == 201
+    return response.json()
+
+# Helper fixture to create an experiment for tests that need one
+@pytest.fixture(scope="function")
+def test_experiment(client: TestClient) -> dict:
+    """
+    Pytest fixture to create a single experiment and return its data.
+    """
+    response = client.post(
+        "/experiments/",
+        json={"name": "test_experiment", "groups": {"control": 0.5, "treatment": 0.5}},
+    )
+    assert response.status_code == 200
     return response.json()
 
 

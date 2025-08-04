@@ -63,17 +63,17 @@ def test_optimize_schedule_endpoint(client: TestClient, test_goal: dict):
     assert len(data["optimized_slots"]) > 0
     # Further assertions can be made here to check the correctness of the solution
 
-def test_reminder_suggestion_endpoint(client: TestClient):
-    response = client.post("/ml/reminders/suggest", json={"user_id": "test_user"})
+def test_reminder_suggestion_endpoint(client: TestClient, test_user: dict):
+    response = client.post("/ml/reminders/suggest", json={"user_id": test_user["id"]})
     assert response.status_code == 200
     data = response.json()
-    assert data["user_id"] == "test_user"
+    assert data["user_id"] == test_user["id"]
     assert "suggestion" in data
 
-def test_reminder_reward_endpoint(client: TestClient):
+def test_reminder_reward_endpoint(client: TestClient, test_user: dict):
     response = client.post(
         "/ml/reminders/reward",
-        json={"user_id": "test_user", "arm": "push_15_min", "reward": 1},
+        json={"user_id": test_user["id"], "arm": "push_15_min", "reward": 1},
     )
     assert response.status_code == 200
     data = response.json()

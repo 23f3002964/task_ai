@@ -10,14 +10,14 @@ from datetime import datetime, timezone, timedelta
 # ====================
 
 
-def test_create_goal(client: TestClient):
+def test_create_goal(client: TestClient, test_user: dict):
     """
     Test creating a new goal via the POST /goals endpoint.
     """
     target_date = datetime.now(timezone.utc)
     response = client.post(
         "/goals/",
-        json={"title": "Learn FastAPI", "target_date": target_date.isoformat()},
+        json={"title": "Learn FastAPI", "target_date": target_date.isoformat(), "owner_id": test_user["id"]},
     )
     assert response.status_code == 201, response.text
     data = response.json()
@@ -34,14 +34,14 @@ def test_create_goal(client: TestClient):
     assert data["methodology"] == "custom"
 
 
-def test_read_goals(client: TestClient, db_session: Session):
+def test_read_goals(client: TestClient, test_user: dict):
     """
     Test retrieving a list of goals via the GET /goals endpoint.
     """
     # Create some goals first
     target_date_str = datetime.now(timezone.utc).isoformat()
-    client.post("/goals/", json={"title": "Goal 1", "target_date": target_date_str})
-    client.post("/goals/", json={"title": "Goal 2", "target_date": target_date_str})
+    client.post("/goals/", json={"title": "Goal 1", "target_date": target_date_str, "owner_id": test_user["id"]})
+    client.post("/goals/", json={"title": "Goal 2", "target_date": target_date_str, "owner_id": test_user["id"]})
 
     response = client.get("/goals/")
     assert response.status_code == 200
@@ -51,14 +51,14 @@ def test_read_goals(client: TestClient, db_session: Session):
     assert data[1]["title"] == "Goal 2"
 
 
-def test_read_single_goal(client: TestClient):
+def test_read_single_goal(client: TestClient, test_user: dict):
     """
     Test retrieving a single goal by its ID.
     """
     target_date_str = datetime.now(timezone.utc).isoformat()
     create_response = client.post(
         "/goals/",
-        json={"title": "Specific Goal", "target_date": target_date_str},
+        json={"title": "Specific Goal", "target_date": target_date_str, "owner_id": test_user["id"]},
     )
     goal_id = create_response.json()["id"]
 
@@ -69,14 +69,14 @@ def test_read_single_goal(client: TestClient):
     assert data["id"] == goal_id
 
 
-def test_update_goal(client: TestClient):
+def test_update_goal(client: TestClient, test_user: dict):
     """
     Test updating an existing goal.
     """
     target_date_str = datetime.now(timezone.utc).isoformat()
     create_response = client.post(
         "/goals/",
-        json={"title": "Original Title", "target_date": target_date_str},
+        json={"title": "Original Title", "target_date": target_date_str, "owner_id": test_user["id"]},
     )
     goal_id = create_response.json()["id"]
 
@@ -90,14 +90,14 @@ def test_update_goal(client: TestClient):
     assert data["id"] == goal_id
 
 
-def test_delete_goal(client: TestClient):
+def test_delete_goal(client: TestClient, test_user: dict):
     """
     Test deleting a goal.
     """
     target_date_str = datetime.now(timezone.utc).isoformat()
     create_response = client.post(
         "/goals/",
-        json={"title": "To Be Deleted", "target_date": target_date_str},
+        json={"title": "To Be Deleted", "target_date": target_date_str, "owner_id": test_user["id"]},
     )
     goal_id = create_response.json()["id"]
 
@@ -122,7 +122,7 @@ def test_read_nonexistent_goal(client: TestClient):
     assert response.status_code == 404
 
 
-def test_decompose_goal_endpoint(client: TestClient):
+def test_decompose_goal_endpoint(client: TestClient, test_user: dict):
     """
     Test the POST /goals/{goal_id}/decompose endpoint.
     """
@@ -130,7 +130,7 @@ def test_decompose_goal_endpoint(client: TestClient):
     target_date = datetime.now(timezone.utc).isoformat()
     create_response = client.post(
         "/goals/",
-        json={"title": "I want to learn Spanish", "target_date": target_date},
+        json={"title": "I want to learn Spanish", "target_date": target_date, "owner_id": test_user["id"]},
     )
     assert create_response.status_code == 201
     goal_id = create_response.json()["id"]
