@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pathcraft_app/providers/goal_provider.dart';
 import 'package:pathcraft_app/screens/home_screen.dart';
 
 void main() {
-  runApp(const PathCraftApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => GoalProvider(),
+      child: const PathCraftApp(),
+    ),
+  );
 }
 
 class PathCraftApp extends StatelessWidget {
