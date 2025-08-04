@@ -110,3 +110,23 @@ class Goal(GoalBase):
 # If issues arise, it can be called here:
 # Goal.model_rebuild()
 # SubGoal.model_rebuild()
+
+# ====================
+# ML Schemas
+# ====================
+
+class TimeSlot(BaseModel):
+    start: datetime
+    end: datetime
+
+class ScheduleRequest(BaseModel):
+    task_ids: List[UUID]
+    available_slots: List[TimeSlot]
+
+class OptimizedSlot(BaseModel):
+    start: datetime
+    end: datetime
+    task_ids: List[UUID]
+
+class Schedule(BaseModel):
+    optimized_slots: List[OptimizedSlot]
